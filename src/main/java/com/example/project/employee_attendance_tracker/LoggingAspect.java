@@ -18,22 +18,22 @@ public class LoggingAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingAspect.class);
 
-    @AfterReturning("execution(* com.example.project.employee_attendance_tracker.service.AuthServices.registerUser(..))")
-    public void lognewUserCreated(JoinPoint joinPoint) {
-        logger.info("New User added at {}", LocalDateTime.now());
-    }
+//    @AfterReturning("execution(* com.example.project.employee_attendance_tracker.service.AuthServices.registerUser(..))")
+//    public void lognewUserCreated(JoinPoint joinPoint) {
+//        logger.info("New User added at {}", LocalDateTime.now());
+//    }
 
-    @AfterReturning("execution(* com.example.project.employee_attendance_tracker.service.AuthServices.loginUser(..))")
-    public void logLogin(JoinPoint joinPoint) throws Throwable{
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication != null){
-            String role = authentication.getAuthorities().stream()
-                    .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
-                    .collect(Collectors.joining(", "));
-
-            logger.info("[{}] is logged in at [{}].", role, LocalDateTime.now());
-        }
-    }
+//    @AfterReturning("execution(* com.example.project.employee_attendance_tracker.service.AuthServices.loginUser(..))")
+//    public void logLogin(JoinPoint joinPoint) throws Throwable{
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if(authentication != null){
+//            String role = authentication.getAuthorities().stream()
+//                    .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
+//                    .collect(Collectors.joining(", "));
+//
+//            logger.info("[{}] is logged in at [{}].", role, LocalDateTime.now());
+//        }
+//    }
 
     @AfterReturning("execution(* com.example.project.employee_attendance_tracker.service.AttendanceServices.checkIn(..))")
     public void logCheckIn(JoinPoint joinPoint) {

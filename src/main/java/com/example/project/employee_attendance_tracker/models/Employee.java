@@ -1,6 +1,5 @@
 package com.example.project.employee_attendance_tracker.models;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;

@@ -4,9 +4,6 @@ import com.example.project.employee_attendance_tracker.dto.LoginDto;
 import com.example.project.employee_attendance_tracker.models.Employee;
 import com.example.project.employee_attendance_tracker.repository.EmpRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,8 +23,8 @@ public class AuthServices {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+//    @Autowired
+//    private AuthenticationManager authenticationManager;
 
     @Autowired
     private HttpSession httpSession;
@@ -41,17 +38,17 @@ public class AuthServices {
         return "User Registered Successfully!";
     }
 
-    public String loginUser(LoginDto loginInfo){
-        try {
-            Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginInfo.getUsername(), loginInfo.getPassword())
-            );
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            httpSession.setAttribute("user", loginInfo.getUsername());
-            return "Login Successful";
-        } catch (BadCredentialsException e) {
-            return "Invalid username or password!";
-        }
-    }
+//    public String loginUser(LoginDto loginInfo){
+//        try {
+//            Authentication auth = authenticationManager.authenticate(
+//                    new UsernamePasswordAuthenticationToken(loginInfo.getUsername(), loginInfo.getPassword())
+//            );
+//            SecurityContextHolder.getContext().setAuthentication(auth);
+//            httpSession.setAttribute("user", loginInfo.getUsername());
+//            return "Login Successful";
+//        } catch (BadCredentialsException e) {
+//            return "Invalid username or password!";
+//        }
+//    }
 
 }

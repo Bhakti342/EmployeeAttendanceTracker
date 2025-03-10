@@ -81,11 +81,9 @@ public class HrController {
     @PostMapping("/downloadCsv")
     public void exportAttendanceToCSV(@RequestBody AttendanceReqDto recordsInfo, HttpServletResponse response) {
         try {
-            // Set headers for CSV download
             response.setContentType("text/csv");
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Attendance-Report.csv\"");
 
-            // Call service method to generate and write CSV
             attendanceServices.exportAttendanceToCSV(recordsInfo, response);
         } catch (Exception e) {
             throw new RuntimeException("Error generating CSV: " + e.getMessage(), e);
