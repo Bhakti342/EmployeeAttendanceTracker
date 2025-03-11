@@ -1,4 +1,4 @@
-package com.example.project.employee_attendance_tracker.filters;
+package com.example.project.employee_attendance_tracker.config;
 
 import com.example.project.employee_attendance_tracker.JwtUtil;
 import com.example.project.employee_attendance_tracker.service.MyUserDetailsService;

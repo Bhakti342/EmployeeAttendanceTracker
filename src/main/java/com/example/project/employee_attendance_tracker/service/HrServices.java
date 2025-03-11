@@ -36,7 +36,7 @@ public class HrServices {
         }
     }
 
-    @Cacheable(value = "employeeById", key = "#id")
+//    @Cacheable(value = "employeeById", key = "#id")
     public Employee getById(Long id) {
         Employee employee = empolyeeRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + id));

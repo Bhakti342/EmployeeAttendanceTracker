@@ -8,8 +8,6 @@ import com.example.project.employee_attendance_tracker.models.Employee;
 import com.example.project.employee_attendance_tracker.repository.AttendanceRepo;
 import com.example.project.employee_attendance_tracker.repository.EmpRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -38,16 +36,17 @@ public class AttendanceServices {
     public String checkIn() {
         Employee employee = getLoggedInEmpInfo();
         LocalDate today = LocalDate.now();
+        if(!employee.isActive()){
+            return "This is no longer an active employee.";
+        }
+        List<Attendance> existingAttendance = attendanceRepo.findByEmployeeAndStateTrueOrderByCreatedAtDesc(employee);
 
-        Optional<Attendance> optionalAttendance = attendanceRepo.findLatestAttendanceByEmployee(employee);
-
-        if (optionalAttendance.isPresent()) {
-            Attendance attendance = optionalAttendance.get();
+        if (!existingAttendance.isEmpty()) {
+            Attendance attendance = existingAttendance.get(0);
             if (attendance.getCheckIn().toLocalDate().equals(today)) {
                 return "You have already checked in today!";
             }
         }
-
         Attendance attendance = new Attendance();
         attendance.setEmployee(employee);
         attendance.setCheckIn(LocalDateTime.now());
@@ -60,11 +59,13 @@ public class AttendanceServices {
     public String checkOut() {
         Employee employee = getLoggedInEmpInfo();
         LocalDate today = LocalDate.now();
+        if(!employee.isActive()){
+            return "This is no longer an active employee.";
+        }
+        List<Attendance> existingAttendance = attendanceRepo.findByEmployeeAndStateTrueOrderByCreatedAtDesc(employee);
 
-        Optional<Attendance> optionalAttendance = attendanceRepo.findLatestAttendanceByEmployee(employee);
-
-        if (optionalAttendance.isPresent()) {
-            Attendance attendance = optionalAttendance.get();
+        if (!existingAttendance.isEmpty()) {
+            Attendance attendance = existingAttendance.get(0);
 
             if (attendance.getCheckOut() != null && attendance.getCheckOut().toLocalDate().equals(today)) {
                 return "You have already checked out today!";
@@ -80,21 +81,12 @@ public class AttendanceServices {
         return "No check-in record found for today!";
     }
 
-    @Cacheable(value = "attendanceRecords", key = "#attendanceReqDto.id + '_' + #attendanceReqDto.startDate + '_' + #attendanceReqDto.endDate")
-    public List<Attendance> getAttendanceRecords(AttendanceReqDto attendanceReqDto) {
+//    @Cacheable(value = "attendanceRecords", key = "#username + '_' + #attendanceRecordDto.startDate + '_' + #attendanceRecordDto.endDate")
+    public List<Attendance> getAttendanceRecords(AttendanceReqDto attendanceRecordDto) {
         Employee employee = getLoggedInEmpInfo();
 
-        if (attendanceReqDto.getId() != null && !attendanceReqDto.getId().contains(employee.getId())) {
-            throw new RuntimeException("You are not authorized to view this data!");
-        }
-
-        if (attendanceReqDto.getId() == null) {
-            List<Long> employeeIds = Collections.singletonList(employee.getId());
-            attendanceReqDto.setId(employeeIds);
-        }
-
-        LocalDate startDate = attendanceReqDto.getStartDate();
-        LocalDate endDate = attendanceReqDto.getEndDate();
+        LocalDate startDate = attendanceRecordDto.getStartDate();
+        LocalDate endDate = attendanceRecordDto.getEndDate();
 
         if (startDate == null) {
             startDate = LocalDate.of(2020, 1, 1); // Default start date
@@ -102,15 +94,13 @@ public class AttendanceServices {
         if (endDate == null) {
             endDate = LocalDate.now();
         }
-        System.out.println(employee.getId());
 
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
-
         return attendanceRepo.findAttendanceBetween(employee.getId(), startDateTime, endDateTime);
     }
 
-   @Cacheable(value = "attendanceRecordsById", key = "#attendanceReqDto.id + '_' + #attendanceReqDto?.startDate")
+//   @Cacheable(value = "attendanceRecordsById", key = "#attendanceReqDto.id + '_' + #attendanceReqDto?.startDate + '_' + #attendanceReqDto?.endDate")
     public List<Attendance> getAttendanceRecordsById(AttendanceReqDto attendanceReqDto) {
         Employee employee = getLoggedInEmpInfo();
 
@@ -138,7 +128,7 @@ public class AttendanceServices {
         return attendanceRepo.findAttendanceBetweenWithIds(employeeIds, startDateTime, endDateTime);
     }
 
-    @CacheEvict(value = "attendanceRecordsById", key = "#existingAttendance?.employee?.id + '_' + #existingAttendance?.checkOut")
+//    @CacheEvict(value = "attendanceRecordsById", key = "#existingAttendance?.employee?.id", allEntries = true)
     public String modifyAttendance(AddAttendanceDto attendanceInfo) {
         Employee isHr = getLoggedInEmpInfo();
 
@@ -193,7 +183,7 @@ public class AttendanceServices {
         return "Attendance record updated successfully!";
     }
 
-    @CacheEvict(value = "attendanceRecordsById", key = "#attendanceInfo?.id + '_' + #attendanceInfo?.date")
+//    @CacheEvict(value = "attendanceRecordsById", key = "#attendanceInfo?.id + '_' + #attendanceInfo?.date")
     public String removeRecordsById(RemoveAttendanceDto attendanceInfo){
         Employee employee = getLoggedInEmpInfo();
         if (!employee.getRole().contains("HR")) {
@@ -207,7 +197,7 @@ public class AttendanceServices {
         LocalDateTime endDateTime = attendanceInfo.getDate().atTime(23, 59, 59);
 
         List<Attendance> attendanceRecords = attendanceRepo.findAttendanceBetween(attendanceInfo.getId(), startDateTime, endDateTime);
-        System.out.println(attendanceRecords);
+
         if (attendanceRecords.isEmpty()) {
             return "No active attendance records found for the specified date.";
         }
@@ -239,11 +229,6 @@ public class AttendanceServices {
                 startDate.atStartOfDay(),
                 endDate.atTime(23, 59, 59)
         );
-
-        System.out.println(employeeIds);
-        System.out.println(startDate);
-        System.out.println(endDate);
-        System.out.println(attendanceRecords);
 
         try (PrintWriter writer = response.getWriter()) {
             writer.println("ID,CHECKIN,CHECKOUT,CREATEDAT,UPDATEDAT,EMPLOYEE_ID");

@@ -1,21 +1,27 @@
 package com.example.project.employee_attendance_tracker.service;
 
+import com.example.project.employee_attendance_tracker.models.AuthenticationRequest;
+import com.example.project.employee_attendance_tracker.models.Employee;
+import com.example.project.employee_attendance_tracker.repository.EmpRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Optional;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
+    @Autowired
+    private EmpRepo employeeRepo;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        String encodedPassword = new BCryptPasswordEncoder().encode("foo");
-        return new User("foo", encodedPassword, new ArrayList<>());
+
+        Optional<Employee> user = employeeRepo.findByUsername(username);
+        user.orElseThrow(()-> new UsernameNotFoundException("User Not Found" + username));
+        return user.map(AuthenticationRequest::new).get();
     }
 }
